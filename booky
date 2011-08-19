@@ -1,0 +1,194 @@
+#!/usr/bin/env python
+#
+# by Erik Osheim
+#
+# the way to use this is:
+#
+# 1. open terminal
+#
+# 2. go to whatever directory (folder) contains this script
+#
+# 3. copy the HTML export that you want to play with somewhere
+#
+# 4. run "python booky INPUT.html > OUTPUT.csv"
+#
+#    INPUT.html should be the path to the input HTML, e.g.
+#      ~/documents/summer-2010.html
+#      ./my-data.html
+#      etc...
+#
+#    OUTPUT.csv should be wherever you want the output to go, e.g.
+#      ./my-output.csv
+#      ~/documents/exports/blahblah.csv
+#
+#    the output CSV uses tab characters to separate fields, and newlines
+#    to separate records.
+
+import sys
+from BeautifulSoup import BeautifulSoup
+specialchars = {
+	"\xe2\x80\x99": "'",
+	"\xe2\x80\x9d": '"',
+	"\xe2\x80\x9c": '"',
+	"\xe2\x80\x98": "'",
+	"\xe2\x80\x93": "&mdash;",
+	"\xe2\x80\xa2": "&bull;",
+	"\xc3\xad": "&iacute;",
+	"\xc3\xa9": "&eacute;",
+	"\xc3\xa1": "&aacute;",
+	"\xc3\xb1": "&ntilde;",
+	"\xc3\xb3": "&oacute;",
+	"\xc3\xba": "&uacute;",
+	"\xe2\x80\xa6": "&hellip;",
+
+}
+if __name__ == "__main__":
+    path = sys.argv[1]
+    html = open(path, 'r').read()
+    soup = BeautifulSoup(html)
+    divs = soup.findAll('div', {'class': 'story'})
+    
+    print 'found %d divs' % len(divs)
+    
+    headline_tags = set(
+        ["headline", "cover-head", "eye-on-head", "letter-head",
+         "heads-small"]
+    )
+    
+    subhead_tags = set(
+        ["cover-dek", "news-sub", "subhead"]
+    )
+    
+    byline_tags = set(
+        ["cover-by", "news-by", 'byline']
+    )
+    
+    body_tags = set(
+        ["body-copy", "cover-body", "cover-body-first", "letter-about",
+         "letter-copy", "letter-to", "letter-writer", "subhead-2", "body-italic",
+         "body-sans", "sidebar", "sidebar-bullet", "sidebar-sub"]
+    )
+    
+    bio_tags = set(
+        ["author-bio"]
+    )
+    
+    ignore_tags = set(
+        ["calendar-copy", "calendar-year", "caption", "caption-2", "continued-sans", "x23-sidebar-copy", "x16-chart-source", "x16-school-list", "x17-chart-info", "x17-chart-source", "x23-sidebar-copy", "x7-category", "x7-list",
+         "cover-left-descrip", "cover-left-factoid", "cover-left-focus",
+         "cover-left-number", "cover-left-spanish", "cover-left-volume",
+         "cover-pull", "department-header", "department-header-bw", "jump-head",
+         "kicker-color", "masthead-copy", "masthead-independent", "photo-credit",
+         "pull-color", "quick-body", "quick-name", "quick-school", "spanish-tout",
+         "timeline-no-date", "timeline-s-alone", "timeline-s-alone-no-date",
+         "toc-numbers", "toc-sub", "toc-title", "web-extra-copy", "who-ya-body",
+         "who-ya-hed-black", "who-ya-hed-bold", "x17-", "x17-info", "x17-list", "subhead-color-ital", "byline-right-sans",
+         "x17-list-sub", "x18-chart-center", "x18-chart-center-tab", "x19-chart-bold", "x19-chart", "body-sans-ital", "body-sans-ital-right", "bio-unitalic", "body-bold", "body-bold-ital", "body-sans-italic", "calendar-date", "caption-unitalic", "cover-body-italic", "kicker-ital", "letter-about-unital", "quick-body-ital", "sidebar-bold-con", "trade-bold", "trade-bold-ital", "x16-drop", "x18-chart-larger-number", "x13-body-bold-green", "body-bold-blue", "x16-box-hed", "x18-name", "x18-address", "cover-left-focus", "cover-continued"
+]
+    )
+    # HEADLINE , SUBHEAD , BYLINE , BODY-COPY , AUTHOR-BIO
+    headline = []
+    subhead  = []
+    byline   = []
+    prebody  = []
+    body     = []
+    bio      = []    
+    for div in divs:
+        classes = set()
+        ps = div.findAll('p')
+        important = []
+        for p in ps:
+            c = p.get('class')
+            if not c or c in ignore_tags:
+                continue
+            classes.add(c)
+            important.append(p)
+        print "-------------"
+        print p.text
+        if "LaRocco" in p.text:
+            print p.text
+        if ('body-copy' in classes or 'cover-body' in classes or
+            'letter-copy' in classes or 'body-sans' in classes or
+            'sidebar' in classes):
+            print "processing body tag"
+            for span in p.findAll("span"):
+                cls = span.get('class')
+                txt = span.text
+                if cls == 'body-italic':
+                    span.replaceWith("<em>%s</em>" % txt)
+                elif cls == 'cover-body-italic':
+                    span.replaceWith("<em>%s</em>" % txt)           
+            del p['class']
+            data = str(p)
+            body.append(data)
+            print p
+        else:
+            print important
+            for p in important:
+                c = p.get('class')
+                if c == 'subhead-2':
+                    data = '<h3>' + p.renderContents() + '</h3>'
+                else:
+                    del p['class']
+                    data = str(p)
+            if c in headline_tags:
+                headline.append(data)
+                print data
+            elif c in subhead_tags:
+                subhead.append(data)
+            elif c in byline_tags:
+                byline.append(data)
+            elif c in body_tags:
+                prebody.append(p)
+            elif c in bio_tags:
+                bio.append(data)
+           # else:
+           #     if not c or c in ignore_tags:
+           #         pass
+           #     else:
+           #         raise Exception("arggg! can't handle p class=%r!!" % c)
+    
+
+        
+		
+	#	continue
+    #       else:
+    #            del p['class']
+    #            data = str(p)
+    for p in prebody:
+        for span in p.findAll("span"):
+            cls = span.get('class')
+            txt = span.text
+            print "--------------"
+            print txt
+            print "--------------"
+            if cls == 'body-italic':
+                span.replaceWith("<em>%s</em>" % txt)
+            elif cls == 'cover-body-italic':
+                span.replaceWith("<em>%s</em>" % txt)
+        print
+        body.append(str(p))
+
+
+    h = ''.join(headline)
+    s = ''.join(subhead)
+    y = ''.join(byline)
+    b = ''.join(body)
+    a = ''.join(bio)
+    fields = [h, s, y, b, a]
+    
+        # do some error checking!!
+    for f in fields:
+        if '\t' in f:
+            raise Exception("illegal tab character found!!")
+        elif '\t' in f:
+            raise Exception('illegal newline character found!!')
+	for sequence in specialchars:
+		replacement = specialchars[sequence]
+		for i in range(0, len(fields)): 
+			fields[i] = fields[i].replace(sequence, replacement)
+    #for i in range(0, len(fields)):
+     #   print i
+      #  print "---------"
+       # print fields[i]		
+   # print '\n'.join(fields)
