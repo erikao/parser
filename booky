@@ -32,7 +32,7 @@ headline_tags = set(["headline", "cover-head", "eye-on-head", "letter-head",
                      "heads-small"])
 
 # p tags with these classes correspond to sub-headlines
-subhead_tags = set(["cover-dek", "news-sub", "subhead"])
+subhead_tags = set(["cover-dek", "news-sub", "subhead", "subhead-2"])
 
 # p tags with these classes correspond to bylines
 byline_tags = set(["cover-by", "news-by", 'byline'])
@@ -57,7 +57,7 @@ ignore_tags = set(
          "pull-color", "quick-body", "quick-name", "quick-school", "spanish-tout",
          "timeline-no-date", "timeline-s-alone", "timeline-s-alone-no-date",
          "toc-numbers", "toc-sub", "toc-title", "web-extra-copy", "who-ya-body",
-         "who-ya-hed-black", "who-ya-hed-bold", "x17-", "x17-info", "x17-list", "subhead-color-ital", "byline-right-sans",
+         "who-ya-hed-black", "who-ya-hed-bold", "x17-", "x17-info", "x17-list", "subhead-color-ital", "byline-right-sans", "chart-name",
          "x17-list-sub", "x18-chart-center", "x18-chart-center-tab", "x19-chart-bold", "x19-chart", "body-sans-ital", "body-sans-ital-right", "bio-unitalic", "body-bold", "body-bold-ital", "body-sans-italic", "calendar-date", "caption-unitalic", "cover-body-italic", "kicker-ital", "letter-about-unital", "quick-body-ital", "sidebar-bold-con", "trade-bold", "trade-bold-ital", "x16-drop", "x18-chart-larger-number", "x13-body-bold-green", "body-bold-blue", "x16-box-hed", "x18-name", "x18-address"
 ])
 
@@ -68,7 +68,8 @@ specialchars = {
 	"\xe2\x80\x9d": '"',
 	"\xe2\x80\x9c": '"',
 	"\xe2\x80\x98": "'",
-	"\xe2\x80\x93": "&mdash;",
+	"\xe2\x80\x93": "&ndash;",
+	"\xe2\x80\x94": "&mdash;",
 	"\xe2\x80\xa2": "&bull;",
 	"\xc3\xad": "&iacute;",
 	"\xc3\xa9": "&eacute;",
@@ -170,7 +171,7 @@ if __name__ == "__main__":
         for p in important:
             c = p.get('class')
 
-            if c == 'subhead-2':
+            if c == 'subhead-3':
                 data = '<h3>' + p.renderContents() + '</h3>'
 		body.append(data)
 		continue
@@ -195,9 +196,11 @@ if __name__ == "__main__":
 	    for span in p.findAll("span"):
 		cls = span.get('class')
 		txt = span.text
-		if cls == 'body-italic':
+		if cls == 'body-ital':
 		    span.replaceWith("<em>%s</em>" % txt)
 		elif cls == 'cover-body-italic':
+		    span.replaceWith("<em>%s</em>" % txt)
+		elif cls == 'bio-unital':
 		    span.replaceWith("<em>%s</em>" % txt)
 	    body.append(str(p))
 
